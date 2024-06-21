@@ -3,6 +3,11 @@
 //
 
 import Foundation
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
 /// Основной протокол новой архитектурой, все протоколы
 /// компонентов архитектурой должны быть унаследованным
@@ -17,8 +22,9 @@ public protocol CArchModuleComponent: CArchProtocol {}
 /// Основной протокол любого объекта UI модели
 public protocol UIModel {}
 #if os(iOS)
-import UIKit
 public typealias ViewController = UIViewController
+#elseif os(macOS)
+public typealias ViewController = NSViewController
 #else
 public typealias ViewController = Any
 #endif
@@ -36,11 +42,9 @@ public protocol CArchModule: CArchProtocol {
     nonisolated var finalizer: AnyModuleFinalizer? { get }
 }
 
-#if canImport(UIKit)
-import UIKit
-
-// MARK: - UIViewController + CArchModule
-extension UIViewController: CArchModule {
+#if os(iOS) || os(macOS)
+// MARK: - ViewController + CArchModule
+extension ViewController: CArchModule {
     
     public nonisolated var node: ViewController {
         self
