@@ -4,6 +4,11 @@
 
 #if canImport(UIKit)
 import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
+
+#if canImport(UIKit) || canImport(AppKit)
 
 /// Основной протокол содержащий логику показа данных на вью (экране)
 /// все протоколы `RenderingLogic` должны быть унаследованными от `RootRenderingLogic`
@@ -50,12 +55,14 @@ public protocol UIRendererPreview {
     /// эквивалентно `viewDidDisappear` у `UIViewController`
     func moduleDidResignActive()
     
+    #if canImport(UIKit)
     /// Уведомляет о том, что размер основного View и его вида собирается измениться.
     /// эквивалентно `viewWillTransition` у `UIViewController`
     /// - Parameters:
     ///   - size: Новый размер
     ///   - coordinator: Объект координатора перехода, управляющий изменением размера
     func moduleWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
+    #endif
 }
 
 // MARK: - ModuleLifeCycle + Default
@@ -65,7 +72,9 @@ public extension ModuleLifeCycle {
     func moduleLayoutSubviews() {}
     func moduleDidBecomeActive() {}
     func moduleDidResignActive() {}
+    #if canImport(UIKit)
     func moduleWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {}
+    #endif
 }
 
 /// Протокол контроля жизненный цикл модуля
@@ -94,23 +103,27 @@ public extension ModuleLifeCycleOwner {
         lifeCycle.forEach { $0.moduleDidResignActive() }
     }
     
+    #if canImport(UIKit)
     @MainActor func moduleWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         lifeCycle.forEach { $0.moduleWillTransition(to: size, with: coordinator) }
     }
+    #endif
 }
 
 // MARK: - UIRenderer + UIViewController
-public extension UIRenderer where Self: UIViewController {
+public extension UIRenderer where Self: ViewController {
     
     /// Показать рендер на UIViewController
     /// - Parameters:
     ///   - parent: `UIViewController`
     ///   - container: `UIView`
-    func embed(into parent: UIViewController, container: UIView? = nil) {
+    func embed(into parent: ViewController, container: View? = nil) {
         parent.addChild(self)
         view.frame = parent.view.frame
         (container ?? parent.view).addSubview(view)
+        #if canImport(UIKit)
         didMove(toParent: parent)
+        #endif
     }
 }
 #endif

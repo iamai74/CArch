@@ -21,10 +21,14 @@ public protocol CArchModuleComponent: CArchProtocol {}
 
 /// Основной протокол любого объекта UI модели
 public protocol UIModel {}
-#if os(iOS)
+#if canImport(UIKit)
 public typealias ViewController = UIViewController
-#elseif os(macOS)
+public typealias View = UIView
+public typealias Image = UIImage
+#elseif canImport(AppKit)
 public typealias ViewController = NSViewController
+public typealias View = NSView
+public typealias Image = NSImage
 #else
 public typealias ViewController = Any
 #endif

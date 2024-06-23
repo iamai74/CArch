@@ -4,6 +4,9 @@
 
 #if canImport(UIKit)
 import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
 /// Замыкание завершения транзакции
 /// - source: Уходящий модуль
@@ -33,13 +36,13 @@ public struct TransitionConfigurator {
 @MainActor public protocol TabActivator {
     
     /// Тип `UIViewController`
-    static var key: UIViewController.Type { get }
+    static var key: ViewController.Type { get }
 }
 
 // MARK: - UIViewController + TabActivator
-extension UIViewController: TabActivator {
+extension ViewController: TabActivator {
     
-    public static var key: UIViewController.Type {
+    public static var key: ViewController.Type {
         Self.self
     }
 }
@@ -47,6 +50,17 @@ extension UIViewController: TabActivator {
 /// Протокол контроля перехода между моделями
 @MainActor public protocol TransitionController: AggregateAbility {
     
+    /// Добавить submodule к текущему модулю
+    /// - Parameter submodule: Submodule
+    /// - Parameter container: Контейнер на основном модуле
+    func embed<Submodule, Container>(submodule: Submodule,
+                                     container: Container) where Submodule: CArchModule, Container: View
+    
+    /// Убрать submodule от основного модуля
+    /// - Parameter submodule: Submodule
+    func removeEmbed<Submodule>(submodule: Submodule.Type) where Submodule: CArchModule
+    
+    #if canImport(UIKit)
     /// Показывает модуль в основном контексте.
     /// - Parameter module: Модуль назначения
     func show(_ module: CArchModule)
@@ -97,16 +111,6 @@ extension UIViewController: TabActivator {
     /// - Parameter activator: Модуль назначения
     func activate(_ module: CArchModule.Type)
     
-    /// Добавить submodule к текущему модулю
-    /// - Parameter submodule: Submodule
-    /// - Parameter container: Контейнер на основном модуле
-    func embed<Submodule, Container>(submodule: Submodule,
-                                     container: Container) where Submodule: CArchModule, Container: UIView
-    
-    /// Убрать submodule от основного модуля
-    /// - Parameter submodule: Submodule
-    func removeEmbed<Submodule>(submodule: Submodule.Type) where Submodule: CArchModule
-    
     /// Вернуться к указанному модулю, если он есть в стеке `UINavigationController`
     /// вызвается у `UINavigationController` метод `popToViewController`
     /// - Parameters:
@@ -132,8 +136,10 @@ extension UIViewController: TabActivator {
     /// - Parameter animated: true чтобы закрыть модуль анимационно
     /// - Parameter completion: Если анимационно, замыкание, которое будет выполнено после завершения анимации
     func dismiss(animated: Bool, completion: TransitionCompletion?)
+    #endif
 }
 
+#if canImport(UIKit)
 // MARK: - TransitionController + Default
 public extension TransitionController {
     
@@ -207,9 +213,40 @@ public extension TransitionController {
         dismiss(animated: true, completion: nil)
     }
 }
+#endif
 
+#if canImport(UIKit) || canImport(AppKit)
 // MARK: - TransitionController + UIViewController
-public extension TransitionController where Self: UIViewController {
+public extension TransitionController where Self: ViewController {
+    
+    func embed<Submodule, Container>(submodule: Submodule,
+                                     container: Container) where Submodule: CArchModule, Container: View {
+        addChild(submodule.node)
+        submodule.node.view.frame = container.bounds
+        container.addSubview(submodule.node.view)
+        #if canImport(UIKit)
+        submodule.node.didMove(toParent: self)
+        #endif
+    }
+    
+    func removeEmbed<Submodule>(submodule: Submodule.Type) where Submodule: CArchModule {
+        for child in children {
+            guard child is Submodule else { continue }
+            #if canImport(UIKit)
+            child.willMove(toParent: nil)
+            #endif
+            child.node.view.removeFromSuperview()
+            child.removeFromParent()
+            break
+        }
+    }
+}
+// MARK: - UIViewController + TransitionController
+extension ViewController: TransitionController {}
+#endif
+
+#if canImport(UIKit)
+public extension TransitionController where Self: ViewController {
     
     func show(_ module: CArchModule) {
         show(module.node, sender: nil)
@@ -278,24 +315,6 @@ public extension TransitionController where Self: UIViewController {
         }
     }
     
-    func embed<Submodule, Container>(submodule: Submodule,
-                                     container: Container) where Submodule: CArchModule, Container: UIView {
-        addChild(submodule.node)
-        submodule.node.view.frame = container.bounds
-        container.addSubview(submodule.node.view)
-        submodule.node.didMove(toParent: self)
-    }
-    
-    func removeEmbed<Submodule>(submodule: Submodule.Type) where Submodule: CArchModule {
-        for child in children {
-            guard child is Submodule else { continue }
-            child.willMove(toParent: nil)
-            child.node.view.removeFromSuperview()
-            child.removeFromParent()
-            break
-        }
-    }
-    
     func pop<Module, State>(to module: Module.Type,
                             with state: State? = nil,
                             animated: Bool = true) where Module: CArchModule, State: ModuleFinalState {
@@ -335,7 +354,9 @@ public extension TransitionController where Self: UIViewController {
         }
     }
 }
+#endif
 
+#if canImport(UIKit)
 // MARK: - Array + UIViewController
 private extension Array where Element == UIViewController {
     
@@ -353,7 +374,4 @@ private extension Array where Element == UIViewController {
         })
     }
 }
-
-// MARK: - UIViewController + TransitionController
-extension UIViewController: TransitionController {}
 #endif

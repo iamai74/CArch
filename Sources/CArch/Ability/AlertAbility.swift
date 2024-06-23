@@ -2,9 +2,13 @@
 //  AlertAbility.swift
 //
 
-#if canImport(UIKit)
+#if os(iOS)
 import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
 
+#if os(iOS) || os(macOS)
 /// Протокол способности оповещения
 @UIContactor
 @MainActor public protocol AlertAbility: CArchProtocol {
@@ -23,6 +27,7 @@ import UIKit
     ///   - message: Сообщение пользователя
     func displayAlert(with title: String, _ message: String?)
 
+    #if canImport(UIKit)
     /// Показать диалог оповещения с более одной кнопкой
     /// ```
     /// +-----------------------+
@@ -82,6 +87,7 @@ import UIKit
     func displayActionSheet(with title: String?,
                             _ message: String?,
                             _ actions: [UIAlertAction])
+    #endif
 }
 
 public extension AlertAbility {
@@ -154,7 +160,9 @@ public extension AlertAbility {
         }
     }
 }
+#endif
 
+#if canImport(UIKit)
 // MARK: - AlertAbility + UIViewController
 extension UIViewController: AlertAbility {
 

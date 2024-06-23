@@ -4,7 +4,11 @@
 
 #if canImport(UIKit)
 import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
+#if canImport(UIKit) || canImport(AppKit)
 /// Возможность поделиться разных материалов
 @MainActor public protocol ShareAbility {
 
@@ -14,7 +18,7 @@ import UIKit
     ///   - image: Изображение
     ///   - url: Ссылка
     ///   - completion: Замыкание вызывается при завершение диалога
-    func share(_ text: String?, _ image: UIImage?, _ url: URL?, _ completion: (() -> Void)?)
+    func share(_ text: String?, _ image: Image?, _ url: URL?, _ completion: (() -> Void)?)
 }
 
 // MARK: - ShareAbility + Extension
@@ -33,7 +37,7 @@ public extension ShareAbility {
     ///   - text: Текст
     ///   - url: Ссылка
     ///   - completion: Замыкание вызывается при завершение диалога
-    func share(_ text: String? = nil, _ image: UIImage, _ completion: (() -> Void)? = nil) {
+    func share(_ text: String? = nil, _ image: Image, _ completion: (() -> Void)? = nil) {
         share(text, image, nil, completion)
     }
 
@@ -46,9 +50,11 @@ public extension ShareAbility {
         share(text, nil, url, completion)
     }
 }
+#endif
 
+#if canImport(UIKit)
 // MARK: - UIViewController + ShareAbility
-extension UIViewController: ShareAbility {
+extension ViewController: ShareAbility {
 
     public func share(_ text: String?, _ image: UIImage?, _ url: URL?, _ completion: (() -> Void)?) {
         var activityItems = [Any]()
@@ -69,5 +75,11 @@ extension UIViewController: ShareAbility {
         }
         present(activityViewController, animated: true, completion: completion)
     }
+}
+#endif
+
+#if canImport(AppKit)
+extension ViewController: ShareAbility {
+    public func share(_ text: String?, _ image: Image?, _ url: URL?, _ completion: (() -> Void)?) {}
 }
 #endif

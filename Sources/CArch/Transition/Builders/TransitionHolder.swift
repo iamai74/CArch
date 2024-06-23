@@ -4,7 +4,11 @@
 
 #if canImport(UIKit)
 import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
+#if canImport(UIKit) || canImport(AppKit)
 /// Носитель информации о переходе
 public final class TransitionHolder {
     

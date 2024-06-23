@@ -4,10 +4,15 @@
 
 #if canImport(UIKit)
 import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
+#if canImport(UIKit) || canImport(AppKit)
 /// Билдер транзакции
 @MainActor public final class TransitionBuilder {
 
+    #if canImport(UIKit)
     /// Типы транзакции
     public enum Transition {
 
@@ -20,10 +25,20 @@ import UIKit
         // Презентовать модуль
         case present
         // Добавить childe `UIViewController`
-        case embed(UIView)
+        case embed(View)
         // Кастомный Презентовать модуль
         case customPresent(UIModalPresentationStyle, UIModalTransitionStyle)
     }
+    #endif
+    
+    #if canImport(AppKit)
+    public enum Transition {
+        // Показать модуль если у source есть `UINavigationController` то, выполняется push если нет то, выполняется present
+        case auto
+        // Добавить childe `NSViewController`
+        case embed(View)
+    }
+    #endif
     
     /// Фабричный метод создания билдера
     /// - Parameter transitionController: Контролер перехода между моделями
@@ -146,6 +161,7 @@ import UIKit
         }
     }
     
+    #if canImport(UIKit)
     /// Выполняет транзакцию с нужным модулям
     /// - Parameter module: Модуль
     private func perform(with module: CArchModule) {
@@ -166,5 +182,19 @@ import UIKit
             transitionController.present(module, animated: animated, completion: completion)
         }
     }
+    #endif
+    
+    #if canImport(AppKit)
+    /// Выполняет транзакцию с нужным модулям
+    /// - Parameter module: Модуль
+    private func perform(with module: CArchModule) {
+        switch transition {
+        case .auto:
+            transitionController.show(module)
+        case .embed(let container):
+            transitionController.embed(submodule: module.node, container: container)
+        }
+    }
+    #endif
 }
 #endif

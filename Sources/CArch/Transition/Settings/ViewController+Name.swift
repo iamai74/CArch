@@ -2,11 +2,15 @@
 //  UIViewController+Name.swift
 //
 
+import Foundation
 #if canImport(UIKit)
 import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
 // MARK: - UIViewController + CArch
-public extension UIViewController {
+public extension ViewController {
 
     /// Названине UIViewController
     @available(*, deprecated, message: "This feature has be deprecated and will be removed in future release")
@@ -46,4 +50,3 @@ public extension UIViewController {
         }
     }
 }
-#endif

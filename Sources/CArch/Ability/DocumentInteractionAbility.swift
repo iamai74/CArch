@@ -2,9 +2,24 @@
 //  DocumentInteractionAbility.swift
 //
 
+import Foundation
 #if canImport(UIKit)
 import UIKit
+#endif
 
+/// Протокол работы с документами
+@MainActor public protocol DocumentInteractionAbility: CArchProtocol {
+
+    #if canImport(UIKit)
+    /// Показать содержание документа
+    /// - Parameters:
+    ///   - url: Ссылка к документу на диске
+    ///   - delegate: Набор методов, которые вы можете реализовать для ответа на сообщения от контроллера взаимодействия документов.
+    func showPreview(for url: URL, delegate: UIDocumentInteractionControllerDelegate) -> Bool
+    #endif
+}
+
+#if canImport(UIKit)
 // MARK: UIDocumentInteractionController + Init
 private extension UIDocumentInteractionController {
 
@@ -18,16 +33,6 @@ private extension UIDocumentInteractionController {
     }
 }
 
-/// Протокол работы с документами
-@MainActor public protocol DocumentInteractionAbility: CArchProtocol {
-
-    /// Показать содержание документа
-    /// - Parameters:
-    ///   - url: Ссылка к документу на диске
-    ///   - delegate: Набор методов, которые вы можете реализовать для ответа на сообщения от контроллера взаимодействия документов.
-    func showPreview(for url: URL, delegate: UIDocumentInteractionControllerDelegate) -> Bool
-}
-
 // MARK: - DocumentInteractionAbility + UIViewController
 extension UIViewController: DocumentInteractionAbility {
 
@@ -35,6 +40,7 @@ extension UIViewController: DocumentInteractionAbility {
         UIDocumentInteractionController(url: url, delegate: delegate).presentPreview(animated: true)
     }
 }
+#endif
 
 // MARK: - URL + UIDocumentInteractionController
 public extension URL {
@@ -67,4 +73,3 @@ public extension URL {
         return name
     }
 }
-#endif
