@@ -61,6 +61,7 @@ extension ViewController: TabActivator {
     func removeEmbed<Submodule>(submodule: Submodule.Type) where Submodule: CArchModule
     
     #if canImport(UIKit)
+    
     /// Показывает модуль в основном контексте.
     /// - Parameter module: Модуль назначения
     func show(_ module: CArchModule)
@@ -136,6 +137,17 @@ extension ViewController: TabActivator {
     /// - Parameter animated: true чтобы закрыть модуль анимационно
     /// - Parameter completion: Если анимационно, замыкание, которое будет выполнено после завершения анимации
     func dismiss(animated: Bool, completion: TransitionCompletion?)
+    
+    #elseif canImport(AppLKit)
+    
+    /// Закрыть открытый модуль
+    func dismiss()
+    
+    func presentAsModal(_ module: CArchModule)
+    
+    func presentAsSheet(_ module: CArchModule)
+    
+    func present(_ module: CArchModule, with animator: NSViewControllerPresentationAnimator)
     #endif
 }
 
@@ -211,6 +223,21 @@ public extension TransitionController {
     /// Закрыть открытый модуль
     func dismiss() {
         dismiss(animated: true, completion: nil)
+    }
+}
+#elseif canImport(AppKit)
+public extension TransitionController where Self: ViewController {
+    
+    func presentAsModal(_ module: CArchModule) {
+        presentAsModalWindow(module.node)
+    }
+    
+    func presentAsSheet(_ module: CArchModule) {
+        presentAsSheet(module.node)
+    }
+    
+    func present(_ module: CArchModule, with animator: NSViewControllerPresentationAnimator) {
+        present(module.node, animator: animator)
     }
 }
 #endif

@@ -37,6 +37,12 @@ import AppKit
         case auto
         // Добавить childe `NSViewController`
         case embed(View)
+        
+        case presentAsModal
+        
+        case presentAsSheet
+        
+        case present(animator: NSViewControllerPresentationAnimator)
     }
     #endif
     
@@ -182,17 +188,21 @@ import AppKit
             transitionController.present(module, animated: animated, completion: completion)
         }
     }
-    #endif
-    
-    #if canImport(AppKit)
+    #elseif canImport(AppKit)
     /// Выполняет транзакцию с нужным модулям
     /// - Parameter module: Модуль
     private func perform(with module: CArchModule) {
         switch transition {
         case .auto:
-            transitionController.show(module)
+            (transitionController as? NSViewController)?.presentAsModal(module)
         case .embed(let container):
             transitionController.embed(submodule: module.node, container: container)
+        case .presentAsModal:
+            (transitionController as? NSViewController)?.presentAsModal(module)
+        case .presentAsSheet:
+            (transitionController as? NSViewController)?.presentAsSheet(module)
+        case .present(animator: let animator):
+            (transitionController as? NSViewController)?.present(module, with: animator)
         }
     }
     #endif
