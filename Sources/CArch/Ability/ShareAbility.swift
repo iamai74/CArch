@@ -76,9 +76,8 @@ extension ViewController: ShareAbility {
         present(activityViewController, animated: true, completion: completion)
     }
 }
-#endif
+#elseif canImport(AppKit)
 
-#if canImport(AppKit)
 extension ViewController: ShareAbility {
     public func share(_ text: String?, _ image: Image?, _ url: URL?, _ completion: (() -> Void)?) {}
 }

@@ -29,9 +29,8 @@ import AppKit
         // Кастомный Презентовать модуль
         case customPresent(UIModalPresentationStyle, UIModalTransitionStyle)
     }
-    #endif
+    #elseif canImport(AppKit)
     
-    #if canImport(AppKit)
     public enum Transition {
         // Показать модуль если у source есть `UINavigationController` то, выполняется push если нет то, выполняется present
         case auto
